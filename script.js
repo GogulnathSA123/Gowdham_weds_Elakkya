@@ -173,35 +173,39 @@ if (firstScriptTag && firstScriptTag.parentNode) {
 
 // Function to initialize the player
 function initYouTubePlayer() {
-    const playerElement = document.getElementById('youtube-player');
-    if (!playerElement) {
-        console.log("youtube-player element not found in DOM yet. Deferring init.");
-        return;
-    }
-    
-    // Check if YT is defined (as YouTube script might still be loading)
-    if (typeof YT === 'undefined' || !YT.Player) {
-        console.log("YouTube API (YT) not loaded yet. Player will initialize via callback.");
-        return;
-    }
-    
-    if (player) return; // Prevent double initialization
-    
-    console.log("Initializing YouTube Player...");
-    player = new YT.Player('youtube-player', {
-        videoId: 'wjr275nhYiw', // Vikram Marriage BGM
-        playerVars: {
-            'autoplay': 1,      // try to play immediately
-            'controls': 0,      // hide controls
-            'loop': 1,          // loop track
-            'playlist': 'wjr275nhYiw', // required for loop
-            'mute': 0,          // unmute
-            'playsinline': 1
-        },
-        events: {
-            'onReady': onPlayerReady
+    try {
+        const playerElement = document.getElementById('youtube-player');
+        if (!playerElement) {
+            console.log("youtube-player element not found in DOM yet. Deferring init.");
+            return;
         }
-    });
+        
+        // Check if YT is defined (as YouTube script might still be loading)
+        if (typeof YT === 'undefined' || !YT.Player) {
+            console.log("YouTube API (YT) not loaded yet. Player will initialize via callback.");
+            return;
+        }
+        
+        if (player) return; // Prevent double initialization
+        
+        console.log("Initializing YouTube Player...");
+        player = new YT.Player('youtube-player', {
+            videoId: 'wjr275nhYiw', // Vikram Marriage BGM
+            playerVars: {
+                'autoplay': 1,      // try to play immediately
+                'controls': 0,      // hide controls
+                'loop': 1,          // loop track
+                'playlist': 'wjr275nhYiw', // required for loop
+                'mute': 0,          // unmute
+                'playsinline': 1
+            },
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    } catch (e) {
+        console.error("YouTube player initialization error: ", e);
+    }
 }
 
 // Global YouTube API Ready Callback
@@ -214,30 +218,43 @@ window.onYouTubeIframeAPIReady = function() {
 
 function onPlayerReady(event) {
     console.log("YouTube Player is ready");
-    ytPlayerReady = true;
-    player.setVolume(35);
-    if (isPlaying) {
-        player.playVideo();
+    try {
+        ytPlayerReady = true;
+        player.setVolume(35);
+        if (isPlaying) {
+            player.playVideo();
+        }
+    } catch (e) {
+        console.error("YouTube onPlayerReady event handling error: ", e);
     }
 }
 
 function playAudio() {
     isPlaying = true;
-    if (ytPlayerReady && player && typeof player.playVideo === 'function') {
-        player.playVideo();
-        if (musicToggle) musicToggle.classList.add('playing');
-        if (toggleIcon) toggleIcon.className = 'fas fa-pause';
-        if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
-    }
-    
-    // Fallback listeners for interaction due to browser autoplay policies
-    const playOnInteract = () => {
+    try {
         if (ytPlayerReady && player && typeof player.playVideo === 'function') {
             player.playVideo();
             if (musicToggle) musicToggle.classList.add('playing');
             if (toggleIcon) toggleIcon.className = 'fas fa-pause';
             if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
-            isPlaying = true;
+        }
+    } catch (e) {
+        console.error("Play audio error: ", e);
+    }
+    
+    // Fallback listeners for interaction due to browser autoplay policies
+    const playOnInteract = () => {
+        try {
+            if (ytPlayerReady && player && typeof player.playVideo === 'function') {
+                player.playVideo();
+                if (musicToggle) musicToggle.classList.add('playing');
+                if (toggleIcon) toggleIcon.className = 'fas fa-pause';
+                if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
+                isPlaying = true;
+                cleanupListeners();
+            }
+        } catch (e) {
+            console.error("Play on interact fallback error: ", e);
             cleanupListeners();
         }
     };
@@ -254,22 +271,26 @@ function playAudio() {
 }
 
 function toggleMusic() {
-    if (isPlaying) {
-        if (ytPlayerReady && player && typeof player.pauseVideo === 'function') {
-            player.pauseVideo();
+    try {
+        if (isPlaying) {
+            if (ytPlayerReady && player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+            }
+            if (musicToggle) musicToggle.classList.remove('playing');
+            if (toggleIcon) toggleIcon.className = 'fas fa-music';
+            if (tooltipText) tooltipText.textContent = 'திருமண இசையை இயக்கு';
+            isPlaying = false;
+        } else {
+            if (ytPlayerReady && player && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+            if (musicToggle) musicToggle.classList.add('playing');
+            if (toggleIcon) toggleIcon.className = 'fas fa-pause';
+            if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
+            isPlaying = true;
         }
-        if (musicToggle) musicToggle.classList.remove('playing');
-        if (toggleIcon) toggleIcon.className = 'fas fa-music';
-        if (tooltipText) tooltipText.textContent = 'திருமண இசையை இயக்கு';
-        isPlaying = false;
-    } else {
-        if (ytPlayerReady && player && typeof player.playVideo === 'function') {
-            player.playVideo();
-        }
-        if (musicToggle) musicToggle.classList.add('playing');
-        if (toggleIcon) toggleIcon.className = 'fas fa-pause';
-        if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
-        isPlaying = true;
+    } catch (e) {
+        console.error("Toggle music error: ", e);
     }
 }
 
@@ -316,7 +337,11 @@ function initWeddingApp() {
     }
     
     // Initialize the YouTube player now that the DOM is ready
-    initYouTubePlayer();
+    try {
+        initYouTubePlayer();
+    } catch (e) {
+        console.error("Failed to initialize player on DOM ready: ", e);
+    }
     
     // Auto-Opening and Walkthrough Timer
     setTimeout(() => {
