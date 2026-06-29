@@ -9,6 +9,146 @@ let ytPlayerReady = false;
 let isPlaying = false;
 let envelopeCover, mainContent, musicToggle, toggleIcon, tooltipText;
 let activeScene = 'forest'; // Active scene tracker shared globally
+let canvas, ctx, canvasWidth, canvasHeight; // Canvas references shared globally
+
+// Dynamic Avatar Object for the Cinematic Journey
+const avatarImg = new Image();
+avatarImg.src = 'assets/images/couple.jpg';
+
+const coupleAvatar = {
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+    targetX: window.innerWidth / 2,
+    targetY: window.innerHeight / 2,
+    radius: 70, // standard circular size
+    floatOffset: 0,
+    opacity: 0,
+    targetOpacity: 0,
+    
+    update() {
+        this.floatOffset += 0.025;
+        
+        // Define target coordinates and opacity depending on the active scene!
+        if (envelopeCover && envelopeCover.classList.contains('open')) {
+            this.targetOpacity = 1;
+            
+            if (activeScene === 'forest') {
+                // Forest Scene: Avatar floats gently on the right side (desktop) or center-bottom (mobile)
+                if (window.innerWidth > 768) {
+                    this.targetX = window.innerWidth * 0.75;
+                    this.targetY = window.innerHeight * 0.5 + Math.sin(this.floatOffset) * 20;
+                } else {
+                    this.targetX = window.innerWidth * 0.5;
+                    this.targetY = window.innerHeight * 0.72 + Math.sin(this.floatOffset) * 15;
+                }
+            } 
+            else if (activeScene === 'waterfall') {
+                // Waterfall Scene: Avatar moves smoothly to the left side, floating among drops
+                if (window.innerWidth > 768) {
+                    this.targetX = window.innerWidth * 0.25;
+                    this.targetY = window.innerHeight * 0.5 + Math.sin(this.floatOffset) * 20;
+                } else {
+                    this.targetX = window.innerWidth * 0.5;
+                    this.targetY = window.innerHeight * 0.72 + Math.sin(this.floatOffset) * 15;
+                }
+            } 
+            else if (activeScene === 'sky') {
+                // Sky Scene: Avatar rises up high into the clouds!
+                if (window.innerWidth > 768) {
+                    this.targetX = window.innerWidth * 0.75;
+                    this.targetY = window.innerHeight * 0.4 + Math.sin(this.floatOffset) * 25;
+                } else {
+                    this.targetX = window.innerWidth * 0.5;
+                    this.targetY = window.innerHeight * 0.35 + Math.sin(this.floatOffset) * 15;
+                }
+            } 
+            else if (activeScene === 'blessings') {
+                // Blessings Scene: Avatar rests centered, receiving blessings
+                this.targetX = window.innerWidth * 0.5;
+                if (window.innerWidth > 768) {
+                    this.targetY = window.innerHeight * 0.35 + Math.sin(this.floatOffset) * 10;
+                } else {
+                    this.targetY = window.innerHeight * 0.38 + Math.sin(this.floatOffset) * 8;
+                }
+            }
+        } else {
+            this.targetOpacity = 0;
+        }
+        
+        // Easing calculations for smooth organic movement (traveling effect!)
+        this.x += (this.targetX - this.x) * 0.05;
+        this.y += (this.targetY - this.y) * 0.05;
+        this.opacity += (this.targetOpacity - this.opacity) * 0.05;
+    },
+    
+    draw() {
+        if (this.opacity <= 0.01) return;
+        
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        
+        // Glow effect
+        ctx.shadowBlur = 25;
+        if (activeScene === 'blessings') {
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.85)'; // Gold halo glow
+        } else if (activeScene === 'sky') {
+            ctx.shadowColor = 'rgba(224, 242, 254, 0.7)'; // Cloud glow
+        } else if (activeScene === 'waterfall') {
+            ctx.shadowColor = 'rgba(14, 165, 233, 0.6)'; // Blue glow
+        } else {
+            ctx.shadowColor = 'rgba(34, 197, 94, 0.5)'; // Green forest glow
+        }
+        
+        // Draw gold outline ring
+        ctx.beginPath();
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 4;
+        ctx.arc(this.x, this.y, this.radius);
+        ctx.stroke();
+        
+        // Draw white outer dashed ring
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.arc(this.x, this.y, this.radius + 5);
+        ctx.stroke();
+        
+        // Clip to draw circular face avatar
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
+        ctx.clip();
+        
+        // Draw the couple face image
+        ctx.drawImage(avatarImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        
+        ctx.restore();
+        
+        // Draw golden rays for blessings
+        if (activeScene === 'blessings') {
+            this.drawBlessingRays();
+        }
+    },
+    
+    drawBlessingRays() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity * 0.35;
+        const gradient = ctx.createLinearGradient(window.innerWidth / 2, 0, this.x, this.y);
+        gradient.addColorStop(0, 'rgba(255, 235, 150, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.45)');
+        gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(window.innerWidth / 2 - 120, 0);
+        ctx.lineTo(window.innerWidth / 2 + 120, 0);
+        ctx.lineTo(this.x + this.radius, this.y);
+        ctx.lineTo(this.x - this.radius, this.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+};
 
 // Load YouTube Iframe API dynamically on the global scope
 const tag = document.createElement('script');
@@ -188,13 +328,13 @@ function initWeddingApp() {
     }, 2000); // 2 seconds delay on load
 
     // --- 2. Unified Storyboard Canvas Animation Engine ---
-    const canvas = document.getElementById('story-canvas');
+    canvas = document.getElementById('story-canvas');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d');
     
     activeScene = 'forest'; // 'forest', 'waterfall', 'sky', 'blessings'
-    let canvasWidth = window.innerWidth;
-    let canvasHeight = window.innerHeight;
+    canvasWidth = window.innerWidth;
+    canvasHeight = window.innerHeight;
 
     function resizeCanvas() {
         canvasWidth = window.innerWidth;
@@ -517,6 +657,10 @@ function initWeddingApp() {
     // --- Main Cinematic Canvas Animation Loop ---
     function animateStoryboard() {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Update and draw the couple's travelling avatar
+        coupleAvatar.update();
+        coupleAvatar.draw();
 
         if (activeScene === 'forest') {
             forestParticles.forEach(p => {

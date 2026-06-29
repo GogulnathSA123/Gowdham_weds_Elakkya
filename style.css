@@ -54,7 +54,7 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: -1; /* Place behind layout for universal text visibility */
+    z-index: 2; /* Layered above overlays but below text content */
 }
 
 /* 1. Interactive Invitation Envelope Overlay */
