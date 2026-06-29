@@ -742,20 +742,23 @@ let blessingRays = [];
             });
         }
         else if (activeScene === 'blessings') {
+            // Draw blessing sparks (glowing particles)
             blessingSparks.forEach(b => {
-            b.update();
-            b.draw();
-        });
-        blessingRays.forEach(r => { r.update(); r.draw(); });
-        // after drawing existing sparks, we now handle rays
                 b.update();
                 b.draw();
             });
+            // Draw blessing rays (light beams)
+            blessingRays.forEach(r => {
+                r.update();
+                r.draw();
+            });
+            // Occasionally spawn a forest particle for ambience
             if (Math.random() > 0.96) {
                 forestParticles.push(new ForestParticle());
             }
+            // Update and render forest particles
             for (let i = forestParticles.length - 1; i >= 0; i--) {
-                let p = forestParticles[i];
+                const p = forestParticles[i];
                 p.update();
                 p.draw();
                 if (p.y > canvasHeight + 10 && forestParticles.length > 30) {
