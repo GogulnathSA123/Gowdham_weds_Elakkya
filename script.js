@@ -6,13 +6,13 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. Canvas Particle System ---
+    // --- 1. Canvas Particle System (Jasmine Petals & Mango Leaves) ---
     const canvas = document.getElementById('particle-canvas');
     const ctx = canvas.getContext('2d');
 
     let animationFrameId;
     let particles = [];
-    const maxParticles = 60;
+    const maxParticles = 50;
 
     // Resize canvas
     function resizeCanvas() {
@@ -22,31 +22,34 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Particle Class
+    // Particle Class representing Jasmine Petals and Mango Leaves
     class Particle {
         constructor() {
             this.x = Math.random() * canvas.width;
             this.y = Math.random() * canvas.height - canvas.height;
-            this.size = Math.random() * 3 + 1;
-            this.speedY = Math.random() * 0.8 + 0.4;
+            this.size = Math.random() * 8 + 6;
+            this.speedY = Math.random() * 0.7 + 0.5;
             this.speedX = Math.random() * 0.4 - 0.2;
-            this.opacity = Math.random() * 0.5 + 0.2;
-            this.color = Math.random() > 0.4 ? 'var(--accent-gold)' : 'var(--accent-rose)';
+            this.opacity = Math.random() * 0.6 + 0.3;
             this.angle = Math.random() * 360;
-            this.spinSpeed = Math.random() * 2 - 1;
+            this.spinSpeed = Math.random() * 1.5 - 0.75;
+            this.type = Math.random() > 0.45 ? 'petal' : 'leaf'; // Jasmine petal or Mango leaf
+            this.swaySpeed = Math.random() * 0.015 + 0.005;
+            this.swayOffset = Math.random() * Math.PI * 2;
+            this.color = null; // Can be overridden for RSVP confetti
         }
 
         update() {
             this.y += this.speedY;
-            this.x += this.speedX + Math.sin(this.y / 30) * 0.2; // slight sway
+            this.x += this.speedX + Math.sin(this.y * this.swaySpeed + this.swayOffset) * 0.35; // gentle wind sway
             this.angle += this.spinSpeed;
 
             // Reset when falling out of bounds
-            if (this.y > canvas.height) {
-                this.y = -10;
+            if (this.y > canvas.height + 20) {
+                this.y = -20;
                 this.x = Math.random() * canvas.width;
-                this.speedY = Math.random() * 0.8 + 0.4;
-                this.opacity = Math.random() * 0.5 + 0.2;
+                this.speedY = Math.random() * 0.7 + 0.5;
+                this.opacity = Math.random() * 0.6 + 0.3;
             }
         }
 
@@ -54,22 +57,47 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate((this.angle * Math.PI) / 180);
-            
-            ctx.beginPath();
             ctx.globalAlpha = this.opacity;
-            ctx.fillStyle = this.color;
             
-            // Draw a diamond/sparkle shape
-            ctx.moveTo(0, -this.size);
-            ctx.lineTo(this.size * 0.7, 0);
-            ctx.lineTo(0, this.size);
-            ctx.lineTo(-this.size * 0.7, 0);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Subtle bloom/glow
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = this.color;
+            if (this.type === 'petal') {
+                // Jasmine Petal - soft white pointed oval
+                ctx.beginPath();
+                ctx.fillStyle = this.color || '#ffffff';
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = this.color || 'rgba(255,255,255,0.4)';
+                
+                // Draw oval shape
+                ctx.ellipse(0, 0, this.size * 0.55, this.size, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Yellow-orange core shading
+                if (!this.color) {
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(255, 230, 160, 0.4)';
+                    ctx.ellipse(0, this.size * 0.3, this.size * 0.25, this.size * 0.35, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                // Mango Leaf - green pointed leaf shape
+                ctx.beginPath();
+                ctx.fillStyle = this.color || 'rgba(76, 175, 80, 0.75)'; // Soft green
+                ctx.strokeStyle = this.color || 'rgba(56, 142, 60, 0.4)';
+                ctx.lineWidth = 1;
+                
+                // Bezier curved leaf shape
+                ctx.moveTo(0, -this.size);
+                ctx.quadraticCurveTo(this.size * 0.38, 0, 0, this.size);
+                ctx.quadraticCurveTo(-this.size * 0.38, 0, 0, -this.size);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Central vein
+                ctx.beginPath();
+                ctx.strokeStyle = this.color ? 'rgba(255,255,255,0.3)' : 'rgba(255, 255, 255, 0.2)';
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(0, this.size);
+                ctx.stroke();
+            }
             
             ctx.restore();
         }
@@ -98,6 +126,163 @@ document.addEventListener('DOMContentLoaded', () => {
         animationFrameId = requestAnimationFrame(animateParticles);
     }
     animateParticles();
+
+    // --- 1B. Waterfall Canvas Animation (Cascading Water Physics) ---
+    const wfCanvas = document.getElementById('waterfall-canvas');
+    if (wfCanvas) {
+        const wfCtx = wfCanvas.getContext('2d');
+        let wfParticles = [];
+        let splashParticles = [];
+        let mistParticles = [];
+        
+        function resizeWf() {
+            wfCanvas.width = wfCanvas.parentElement.clientWidth;
+            wfCanvas.height = wfCanvas.parentElement.clientHeight;
+        }
+        resizeWf();
+        window.addEventListener('resize', resizeWf);
+        
+        // Individual falling water droplet
+        class WaterDrop {
+            constructor() {
+                this.reset();
+                // Start drops at random heights initially
+                this.y = Math.random() * wfCanvas.height;
+            }
+            reset() {
+                this.x = Math.random() * wfCanvas.width;
+                this.y = 0;
+                this.vy = Math.random() * 5 + 8; // high speed falling
+                this.vx = Math.random() * 0.4 - 0.2;
+                this.length = Math.random() * 15 + 10;
+                this.width = Math.random() * 1.5 + 0.5;
+                this.opacity = Math.random() * 0.4 + 0.3;
+            }
+            update() {
+                this.y += this.vy;
+                this.x += this.vx;
+                this.vy += 0.2; // gravity acceleration
+                
+                // If hits bottom, trigger splash and reset
+                if (this.y >= wfCanvas.height - 20) {
+                    createSplash(this.x, wfCanvas.height - 20);
+                    this.reset();
+                }
+            }
+            draw() {
+                wfCtx.beginPath();
+                wfCtx.strokeStyle = `rgba(180, 220, 255, ${this.opacity})`;
+                wfCtx.lineWidth = this.width;
+                wfCtx.moveTo(this.x, this.y);
+                wfCtx.lineTo(this.x - this.vx * 2, this.y - this.length);
+                wfCtx.stroke();
+            }
+        }
+        
+        // Splashing drops at bottom
+        class Splash {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.random() * 4 - 2;
+                this.vy = -(Math.random() * 3 + 2); // shoot up
+                this.size = Math.random() * 2 + 1;
+                this.gravity = 0.15;
+                this.opacity = 1;
+                this.color = 'rgba(220, 240, 255, 0.8)';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.opacity -= 0.04;
+            }
+            draw() {
+                wfCtx.beginPath();
+                wfCtx.fillStyle = this.color;
+                wfCtx.globalAlpha = this.opacity;
+                wfCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                wfCtx.fill();
+            }
+        }
+        
+        // Mist cloud particles rising at the bottom
+        class Mist {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.random() * 2 - 1;
+                this.vy = -Math.random() * 0.5 - 0.2; // float up slowly
+                this.size = Math.random() * 15 + 10;
+                this.opacity = Math.random() * 0.2 + 0.1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.size += 0.2; // expand
+                this.opacity -= 0.005;
+            }
+            draw() {
+                wfCtx.beginPath();
+                let grad = wfCtx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                grad.addColorStop(0, `rgba(240, 250, 255, ${this.opacity})`);
+                grad.addColorStop(1, 'rgba(240, 250, 255, 0)');
+                wfCtx.fillStyle = grad;
+                wfCtx.globalAlpha = 1;
+                wfCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                wfCtx.fill();
+            }
+        }
+        
+        function createSplash(x, y) {
+            if (Math.random() > 0.3) {
+                splashParticles.push(new Splash(x, y));
+            }
+            if (Math.random() > 0.8) {
+                mistParticles.push(new Mist(x, y));
+            }
+        }
+        
+        // Initialize drops
+        for (let i = 0; i < 150; i++) {
+            wfParticles.push(new WaterDrop());
+        }
+        
+        function animateWaterfall() {
+            wfCtx.clearRect(0, 0, wfCanvas.width, wfCanvas.height);
+            
+            // Update & draw drops
+            wfParticles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            // Update & draw splashes
+            for (let i = splashParticles.length - 1; i >= 0; i--) {
+                let s = splashParticles[i];
+                s.update();
+                if (s.opacity <= 0) {
+                    splashParticles.splice(i, 1);
+                } else {
+                    s.draw();
+                }
+            }
+            
+            // Update & draw mist
+            for (let i = mistParticles.length - 1; i >= 0; i--) {
+                let m = mistParticles[i];
+                m.update();
+                if (m.opacity <= 0) {
+                    mistParticles.splice(i, 1);
+                } else {
+                    m.draw();
+                }
+            }
+            
+            requestAnimationFrame(animateWaterfall);
+        }
+        animateWaterfall();
+    }
 
 
     // --- 2. Floating Background Music Controls ---
