@@ -13,11 +13,28 @@ let activeScene = 'forest'; // Active scene tracker shared globally
 // Load YouTube Iframe API dynamically on the global scope
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
-const firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+const firstScriptTag = document.getElementsByTagName('script')[0] || document.body.firstChild;
+if (firstScriptTag && firstScriptTag.parentNode) {
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
 
-// Global YouTube API Ready Callback
-window.onYouTubeIframeAPIReady = function() {
+// Function to initialize the player
+function initYouTubePlayer() {
+    const playerElement = document.getElementById('youtube-player');
+    if (!playerElement) {
+        console.log("youtube-player element not found in DOM yet. Deferring init.");
+        return;
+    }
+    
+    // Check if YT is defined (as YouTube script might still be loading)
+    if (typeof YT === 'undefined' || !YT.Player) {
+        console.log("YouTube API (YT) not loaded yet. Player will initialize via callback.");
+        return;
+    }
+    
+    if (player) return; // Prevent double initialization
+    
+    console.log("Initializing YouTube Player...");
     player = new YT.Player('youtube-player', {
         videoId: 'wjr275nhYiw', // Vikram Marriage BGM
         playerVars: {
@@ -32,9 +49,18 @@ window.onYouTubeIframeAPIReady = function() {
             'onReady': onPlayerReady
         }
     });
+}
+
+// Global YouTube API Ready Callback
+window.onYouTubeIframeAPIReady = function() {
+    console.log("YouTube API is ready");
+    if (document.getElementById('youtube-player')) {
+        initYouTubePlayer();
+    }
 };
 
 function onPlayerReady(event) {
+    console.log("YouTube Player is ready");
     ytPlayerReady = true;
     player.setVolume(35);
     if (isPlaying) {
@@ -122,6 +148,7 @@ function startCinematicTour() {
 
 // --- DOM Content Initialization ---
 function initWeddingApp() {
+    console.log("initWeddingApp fired");
     envelopeCover = document.getElementById('envelope-cover');
     mainContent = document.getElementById('main-content');
     musicToggle = document.getElementById('music-toggle');
@@ -130,6 +157,9 @@ function initWeddingApp() {
         tooltipText = document.querySelector('.music-tooltip');
         musicToggle.addEventListener('click', toggleMusic);
     }
+    
+    // Initialize the YouTube player now that the DOM is ready
+    initYouTubePlayer();
     
     // Auto-Opening and Walkthrough Timer
     setTimeout(() => {
