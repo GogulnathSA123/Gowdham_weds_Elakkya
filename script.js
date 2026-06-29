@@ -103,7 +103,7 @@ const coupleAvatar = {
         ctx.beginPath();
         ctx.strokeStyle = '#d4af37';
         ctx.lineWidth = 4;
-        ctx.arc(this.x, this.y, this.radius);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
         
         // Draw white outer dashed ring
@@ -111,7 +111,7 @@ const coupleAvatar = {
         ctx.strokeStyle = 'rgba(255,255,255,0.6)';
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
-        ctx.arc(this.x, this.y, this.radius + 5);
+        ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
         ctx.stroke();
         
         // Clip to draw circular face avatar with loading fallback
