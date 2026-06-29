@@ -663,6 +663,7 @@ function initWeddingApp() {
     let stars = [];
     let clouds = [];
     let blessingSparks = [];
+let blessingRays = [];
 
     function prewarmAssets() {
         for (let i = 0; i < 40; i++) {
@@ -742,6 +743,11 @@ function initWeddingApp() {
         }
         else if (activeScene === 'blessings') {
             blessingSparks.forEach(b => {
+            b.update();
+            b.draw();
+        });
+        blessingRays.forEach(r => { r.update(); r.draw(); });
+        // after drawing existing sparks, we now handle rays
                 b.update();
                 b.draw();
             });
