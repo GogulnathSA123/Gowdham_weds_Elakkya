@@ -5,34 +5,68 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. Interactive Envelope Card Opener ---
+    // --- 1. Interactive Envelope Card Opener & YouTube Player Integration ---
     const envelopeCover = document.getElementById('envelope-cover');
-    const openEnvelopeBtn = document.getElementById('open-envelope-btn');
     const mainContent = document.getElementById('main-content');
-    const audio = document.getElementById('wedding-audio');
     const musicToggle = document.getElementById('music-toggle');
     const toggleIcon = musicToggle.querySelector('i');
     const tooltipText = document.querySelector('.music-tooltip');
     
     let isPlaying = false;
-    audio.volume = 0.35; // pleasant ambient volume
+    let ytPlayerReady = false;
+
+    // Load YouTube Iframe API dynamically
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // Global YouTube API Ready Callback
+    window.onYouTubeIframeAPIReady = function() {
+        window.player = new YT.Player('youtube-player', {
+            videoId: 'wjr275nhYiw', // Vikram Marriage BGM
+            playerVars: {
+                'autoplay': 1,      // try to play immediately
+                'controls': 0,      // hide controls
+                'loop': 1,          // loop track
+                'playlist': 'wjr275nhYiw', // required for loop
+                'mute': 0,          // unmute
+                'playsinline': 1
+            },
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    };
+
+    function onPlayerReady(event) {
+        ytPlayerReady = true;
+        // set sound volume slightly lower for pleasant ambience
+        window.player.setVolume(35);
+        
+        // Attempt autoplay immediately (some browser policies may allow it depending on site score)
+        if (isPlaying) {
+            window.player.playVideo();
+        }
+    }
 
     function toggleMusic() {
         if (isPlaying) {
-            audio.pause();
+            if (ytPlayerReady && window.player && typeof window.player.pauseVideo === 'function') {
+                window.player.pauseVideo();
+            }
             musicToggle.classList.remove('playing');
             toggleIcon.className = 'fas fa-music';
             tooltipText.textContent = 'திருமண இசையை இயக்கு';
             isPlaying = false;
         } else {
-            audio.play().then(() => {
-                musicToggle.classList.add('playing');
-                toggleIcon.className = 'fas fa-pause';
-                tooltipText.textContent = 'இசையை நிறுத்து';
-                isPlaying = true;
-            }).catch(err => {
-                console.log('Autoplay blocked: ', err);
-            });
+            if (ytPlayerReady && window.player && typeof window.player.playVideo === 'function') {
+                window.player.playVideo();
+            }
+            musicToggle.classList.add('playing');
+            toggleIcon.className = 'fas fa-pause';
+            tooltipText.textContent = 'இசையை நிறுத்து';
+            isPlaying = true;
         }
     }
 
@@ -47,43 +81,43 @@ document.addEventListener('DOMContentLoaded', () => {
             mainContent.classList.add('main-visible');
         }
         
-        // Try playing the Tamil wedding song immediately
+        // Try playing the Vikram Wedding BGM immediately
         playAudio();
         
-        // Start automatic narrative tour through scenes
+        // Start automatic narrative walkthrough
         setTimeout(startCinematicTour, 3000);
     }, 2000); // 2 seconds to view envelope cover before opening
 
     function playAudio() {
-        if (!audio) return;
-        audio.play().then(() => {
+        isPlaying = true;
+        if (ytPlayerReady && window.player && typeof window.player.playVideo === 'function') {
+            window.player.playVideo();
             musicToggle.classList.add('playing');
             toggleIcon.className = 'fas fa-pause';
             tooltipText.textContent = 'இசையை நிறுத்து';
-            isPlaying = true;
-        }).catch(err => {
-            console.log('Autoplay prevented. Music will play on first interaction.', err);
-            // Fallback: play on any scroll, touch, or click
-            const playOnInteract = () => {
-                audio.play().then(() => {
-                    musicToggle.classList.add('playing');
-                    toggleIcon.className = 'fas fa-pause';
-                    tooltipText.textContent = 'இசையை நிறுத்து';
-                    isPlaying = true;
-                    cleanupListeners();
-                }).catch(e => console.log('Audio start retry failed', e));
-            };
-            
-            const cleanupListeners = () => {
-                window.removeEventListener('click', playOnInteract);
-                window.removeEventListener('scroll', playOnInteract);
-                window.removeEventListener('touchstart', playOnInteract);
-            };
-            
-            window.addEventListener('click', playOnInteract, { passive: true });
-            window.addEventListener('scroll', playOnInteract, { passive: true });
-            window.addEventListener('touchstart', playOnInteract, { passive: true });
-        });
+        }
+        
+        // Fallback: start video sound on first scroll, touch, or click due to browser autoplay policies
+        const playOnInteract = () => {
+            if (ytPlayerReady && window.player && typeof window.player.playVideo === 'function') {
+                window.player.playVideo();
+                musicToggle.classList.add('playing');
+                toggleIcon.className = 'fas fa-pause';
+                tooltipText.textContent = 'இசையை நிறுத்து';
+                isPlaying = true;
+                cleanupListeners();
+            }
+        };
+        
+        const cleanupListeners = () => {
+            window.removeEventListener('click', playOnInteract);
+            window.removeEventListener('scroll', playOnInteract);
+            window.removeEventListener('touchstart', playOnInteract);
+        };
+        
+        window.addEventListener('click', playOnInteract, { passive: true });
+        window.addEventListener('scroll', playOnInteract, { passive: true });
+        window.addEventListener('touchstart', playOnInteract, { passive: true });
     }
 
     function startCinematicTour() {
