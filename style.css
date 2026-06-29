@@ -399,36 +399,38 @@ body {
 #forest-scene .scene-overlay {
     background: linear-gradient(
         to bottom,
-        rgba(15, 23, 42, 0.6) 0%,
-        rgba(12, 38, 23, 0.4) 50%,
-        rgba(15, 23, 42, 0.7) 100%
-    );
+        rgba(15, 23, 42, 0.55) 0%,
+        rgba(12, 38, 23, 0.3) 50%,
+        rgba(15, 23, 42, 0.65) 100%
+    ), url('assets/images/hero_bg.jpg') no-repeat center center;
+    background-size: cover;
 }
 
 #waterfall-scene .scene-overlay {
     background: linear-gradient(
         to bottom,
-        rgba(15, 23, 42, 0.7) 0%,
-        rgba(16, 28, 48, 0.4) 50%,
-        rgba(10, 16, 28, 0.8) 100%
-    );
+        rgba(15, 23, 42, 0.6) 0%,
+        rgba(16, 28, 48, 0.25) 50%,
+        rgba(10, 16, 28, 0.75) 100%
+    ), url('assets/images/waterfall.jpg') no-repeat center center;
+    background-size: cover;
 }
 
 #sky-scene .scene-overlay {
     background: linear-gradient(
         to bottom,
-        rgba(10, 16, 28, 0.8) 0%,
-        rgba(13, 20, 38, 0.4) 50%,
-        rgba(12, 10, 20, 0.8) 100%
+        rgba(10, 16, 28, 0.9) 0%,
+        rgba(26, 36, 58, 0.75) 50%,
+        rgba(12, 10, 20, 0.9) 100%
     );
 }
 
 #divine-scene .scene-overlay {
     background: linear-gradient(
         to bottom,
-        rgba(12, 10, 20, 0.75) 0%,
-        rgba(12, 10, 20, 0.25) 50%,
-        rgba(15, 23, 42, 0.95) 100%
+        rgba(12, 10, 20, 0.7) 0%,
+        rgba(12, 10, 20, 0.2) 50%,
+        rgba(15, 23, 42, 0.9) 100%
     ), url('assets/images/murugan.jpg') no-repeat center center;
     background-size: cover;
 }
