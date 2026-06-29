@@ -114,13 +114,26 @@ const coupleAvatar = {
         ctx.arc(this.x, this.y, this.radius + 5);
         ctx.stroke();
         
-        // Clip to draw circular face avatar
+        // Clip to draw circular face avatar with loading fallback
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
         ctx.clip();
         
-        // Draw the couple face image
-        ctx.drawImage(avatarImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        if (avatarImg.complete && avatarImg.naturalWidth !== 0) {
+            ctx.drawImage(avatarImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        } else {
+            // Golden placeholder with Tamil initials (இ & க)
+            ctx.fillStyle = '#1b070c';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 24px Outfit, Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('\u0b87 \u0026 \u0b95', this.x, this.y);
+        }
         
         ctx.restore();
         
