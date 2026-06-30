@@ -13,7 +13,7 @@ let canvas, ctx, canvasWidth, canvasHeight; // Canvas references shared globally
 
 // Dynamic Avatar Object for the Cinematic Journey
 const avatarImg = new Image();
-avatarImg.src = ''; // Disabled couple1.jpeg to display initials placeholder card directly
+avatarImg.src = 'assets/images/couple_silhouette.jpg';
 
 const coupleAvatar = {
     x: window.innerWidth / 2,
