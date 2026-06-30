@@ -253,7 +253,7 @@ function playAudio() {
             player.playVideo();
             if (musicToggle) musicToggle.classList.add('playing');
             if (toggleIcon) toggleIcon.className = 'fas fa-pause';
-            if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
+            if (tooltipText) tooltipText.textContent = 'Mute Music';
         }
     } catch (e) {
         console.error("Play audio error: ", e);
@@ -266,7 +266,7 @@ function playAudio() {
                 player.playVideo();
                 if (musicToggle) musicToggle.classList.add('playing');
                 if (toggleIcon) toggleIcon.className = 'fas fa-pause';
-                if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
+                if (tooltipText) tooltipText.textContent = 'Mute Music';
                 isPlaying = true;
                 cleanupListeners();
             }
@@ -295,7 +295,7 @@ function toggleMusic() {
             }
             if (musicToggle) musicToggle.classList.remove('playing');
             if (toggleIcon) toggleIcon.className = 'fas fa-music';
-            if (tooltipText) tooltipText.textContent = 'திருமண இசையை இயக்கு';
+            if (tooltipText) tooltipText.textContent = 'Play Music';
             isPlaying = false;
         } else {
             if (ytPlayerReady && player && typeof player.playVideo === 'function') {
@@ -303,7 +303,7 @@ function toggleMusic() {
             }
             if (musicToggle) musicToggle.classList.add('playing');
             if (toggleIcon) toggleIcon.className = 'fas fa-pause';
-            if (tooltipText) tooltipText.textContent = 'இசையை நிறுத்து';
+            if (tooltipText) tooltipText.textContent = 'Mute Music';
             isPlaying = true;
         }
     } catch (e) {
@@ -360,27 +360,31 @@ function initWeddingApp() {
         console.error("Failed to initialize player on DOM ready: ", e);
     }
     
-    // Auto-Opening and Walkthrough Timer
-    setTimeout(() => {
-        if (envelopeCover) envelopeCover.classList.add('open');
-        if (mainContent) {
-            mainContent.classList.remove('main-hidden');
-            mainContent.classList.add('main-visible');
-        }
-        
-        // Immediately reveal the first section's content to guarantee text visibility on load
-        const firstScene = document.getElementById('forest-scene');
-        if (firstScene) {
-            const reveals = firstScene.querySelectorAll('.scroll-reveal');
-            reveals.forEach(el => el.classList.add('revealed'));
-        }
-        
-        // Start background music
-        playAudio();
-        
-        // Start automatic narrative walkthrough
-        setTimeout(startCinematicTour, 3000);
-    }, 2000); // 2 seconds delay on load
+    // Bind Open Envelope Button (Wired up to trigger user-interactive audio play)
+    const openBtn = document.getElementById('open-envelope-btn');
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            console.log("Envelope opened by user click");
+            if (envelopeCover) envelopeCover.classList.add('open');
+            if (mainContent) {
+                mainContent.classList.remove('main-hidden');
+                mainContent.classList.add('main-visible');
+            }
+            
+            // Immediately reveal the first section's content
+            const firstScene = document.getElementById('forest-scene');
+            if (firstScene) {
+                const reveals = firstScene.querySelectorAll('.scroll-reveal');
+                reveals.forEach(el => el.classList.add('revealed'));
+            }
+            
+            // Play background music (safely allowed as it responds directly to this user click)
+            playAudio();
+            
+            // Start automatic narrative walkthrough
+            setTimeout(startCinematicTour, 3000);
+        });
+    }
 
     // --- 2. Unified Storyboard Canvas Animation Engine ---
     canvas = document.getElementById('story-canvas');
