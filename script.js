@@ -923,6 +923,83 @@ function initWeddingApp() {
         }
     }
 
+    class SeaWave {
+        constructor(yOffset, speed, amplitude, wavelength, color, hasFoam = false) {
+            this.yOffset = yOffset; // fraction of canvas height (e.g. 0.8)
+            this.speed = speed;
+            this.amplitude = amplitude;
+            this.wavelength = wavelength;
+            this.color = color;
+            this.hasFoam = hasFoam;
+            this.angle = Math.random() * Math.PI * 2;
+        }
+        update() {
+            this.angle += this.speed;
+        }
+        draw() {
+            ctx.save();
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            
+            let baseY = canvasHeight * this.yOffset;
+            ctx.moveTo(0, canvasHeight);
+            
+            // Draw the wave surface
+            for (let x = 0; x <= canvasWidth; x += 15) {
+                let y = baseY + Math.sin(x * this.wavelength + this.angle) * this.amplitude;
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.lineTo(canvasWidth, canvasHeight);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw white foam at the crests if specified
+            if (this.hasFoam) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#ffffff';
+                ctx.beginPath();
+                for (let x = 0; x <= canvasWidth; x += 15) {
+                    let y = baseY + Math.sin(x * this.wavelength + this.angle) * this.amplitude;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    }
+
+    function drawMountainSilhouettes() {
+        ctx.save();
+        // Far mountains (lighter slate)
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        let yStart = canvasHeight * 0.72;
+        ctx.moveTo(0, canvasHeight);
+        ctx.lineTo(0, yStart);
+        ctx.quadraticCurveTo(canvasWidth * 0.25, canvasHeight * 0.52, canvasWidth * 0.5, yStart);
+        ctx.quadraticCurveTo(canvasWidth * 0.75, canvasHeight * 0.47, canvasWidth, yStart + 50);
+        ctx.lineTo(canvasWidth, canvasHeight);
+        ctx.closePath();
+        ctx.fill();
+
+        // Near mountains (darker slate/black)
+        ctx.fillStyle = 'rgba(7, 10, 19, 0.95)';
+        ctx.beginPath();
+        let yStart2 = canvasHeight * 0.77;
+        ctx.moveTo(0, canvasHeight);
+        ctx.lineTo(0, yStart2);
+        ctx.quadraticCurveTo(canvasWidth * 0.35, canvasHeight * 0.62, canvasWidth * 0.7, yStart2);
+        ctx.quadraticCurveTo(canvasWidth * 0.85, canvasHeight * 0.67, canvasWidth, yStart2 + 30);
+        ctx.lineTo(canvasWidth, canvasHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
     // --- Array Initializations ---
     let forestParticles = [];
     let waterfallDrops = [];
@@ -935,6 +1012,7 @@ function initWeddingApp() {
     let blessingSparks = [];
     let blessingRays = [];
     let blessingFlowers = [];
+    let seaWaves = [];
 
     function prewarmAssets() {
         for (let i = 0; i < 40; i++) {
@@ -971,6 +1049,11 @@ function initWeddingApp() {
         for (let i = 0; i < 20; i++) {
             blessingFlowers.push(new BlessingFlower(true));
         }
+
+        // Initialize 3 layers of rolling seashore waves for the seashore/mountain scene
+        seaWaves.push(new SeaWave(0.80, 0.015, 12, 0.005, 'rgba(10, 37, 64, 0.85)', false)); // back wave
+        seaWaves.push(new SeaWave(0.84, 0.022, 10, 0.008, 'rgba(14, 116, 144, 0.75)', false)); // middle wave
+        seaWaves.push(new SeaWave(0.88, 0.028, 8, 0.012, 'rgba(21, 94, 117, 0.6)', true)); // front wave with white foam
     }
     prewarmAssets();
 
@@ -1043,17 +1126,40 @@ function initWeddingApp() {
                 c.update();
                 c.draw();
             });
+
+            // Draw mountain silhouettes and rolling seashore waves under the sky
+            drawMountainSilhouettes();
+            seaWaves.forEach(w => {
+                w.update();
+                w.draw();
+            });
         }
         else if (activeScene === 'blessings') {
-            // Draw blessing sparks (glowing particles)
-            blessingSparks.forEach(b => {
-                b.update();
-                b.draw();
+            // Draw twinkling stars in the divine night sky
+            stars.forEach(s => {
+                s.update();
+                s.draw();
             });
+
             // Draw blessing rays (light beams)
             blessingRays.forEach(r => {
                 r.update();
                 r.draw();
+            });
+
+            // Draw mountain silhouettes
+            drawMountainSilhouettes();
+
+            // Draw rolling seashore waves at the bottom of the scene
+            seaWaves.forEach(w => {
+                w.update();
+                w.draw();
+            });
+
+            // Draw blessing sparks (glowing bokeh circles)
+            blessingSparks.forEach(b => {
+                b.update();
+                b.draw();
             });
             // Draw falling lotuses (divine flower shower)
             blessingFlowers.forEach(f => {
